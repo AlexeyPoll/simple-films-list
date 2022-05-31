@@ -1,0 +1,9 @@
+.film-wrapper {
+    padding: 10px;
+    outline: 1px solid black;
+    width: 80%;
+    margin: 10px 0;
+    max-width: 500px;
+    display: flex;
+    justify-content: space-between;
+}
