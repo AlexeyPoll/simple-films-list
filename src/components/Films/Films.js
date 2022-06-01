@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import Film from '../Film/Film';
 import Filter from '../Filter/Filter';
 import { removeCurrentAccount } from '../../actions/users.actions';
+import isEmptyObject from '../../helpers/isEmptyObject';
 
 const Films = () => {
     const dispatch = useDispatch();
@@ -32,15 +33,17 @@ const Films = () => {
 
     return <div className={styles['films-wrapper']}>
         {
-            currentAccount.username
-                ? `Hello, ${currentAccount.username}!`
-                : 'Please login or create an account!'
+            isEmptyObject(currentAccount)
+                ? 'Please login or create an account!'
+                : `Hello, ${currentAccount.username}!`
+                
         }
 
-        {!currentAccount.username && <Link to='/login'>Login</Link>}
-        {!currentAccount.username && <Link to='/create-account'>Create Account</Link>}
-        {currentAccount.username && <button onClick={handleLogOutClick}>Log out</button>}
-        {currentAccount.username && <Link onClick={handleFavoritesClick} to='/favorites'>Favorites</Link>}
+        {isEmptyObject(currentAccount) && <Link to='/login'>Login</Link>}
+        {isEmptyObject(currentAccount) && <Link to='/create-account'>Create Account</Link>}
+        
+        {isEmptyObject(currentAccount) || <button onClick={handleLogOutClick}>Log out</button>}
+        {isEmptyObject(currentAccount) || <Link onClick={handleFavoritesClick} to='/favorites'>Favorites</Link>}
 
         <Filter />
 
