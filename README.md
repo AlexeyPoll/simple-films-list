@@ -1,70 +1,118 @@
-# Getting Started with Create React App
+# Simple example project
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Redux flow:
 
-## Available Scripts
+1. Store - our redux global object.
 
-In the project directory, you can run:
+    Directory [src/store](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/store/index.js) - basic redux store set up with thunk middlware.
 
-### `npm start`
+    It will be passed to Provider as a store prop inside root component [src/index.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/index.js).
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+2. Reducers - just functions `function(store, action)` which return new     immutable (=new object) store which will override current store.
+    
+    You know that object in JavaScript is reference data type. So we have to create new object with new reference.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+    There are two reducers: [src/reducers/films.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/reducers/films.js), [src/reducers/users.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/reducers/users.js).
 
-### `npm test`
+    They are combined in [src/reducers/index.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/reducers/index.js) and imported to [src/store - line 3](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/store/index.js#L3).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+3. Actions - just an object like this `{ type: ACTION_TYPE, payload: DATA }`
 
-### `npm run build`
+    First of all we need constants with action types [src/actions/types.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/actions/types.js). It will help to be sure about correct spelling.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+    Actions directories: [src/actions/film.actions.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/actions/film.actions.js) and [src/actions/users.actions.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/actions/users.actions.js). In this files you will find functions which return objects in this format `{ type: ACTION_TYPE, payload: DATA }` so it means that this is a functions which return actions or `action creators`.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+    Due to we added to [src/store/index.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/store/index.js) `thunk` middleware we can write `action creators` like this [thunk example](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/actions/film.actions.js#L4). It will call your API and after success or reject call appropriate [handler](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/actions/film.actions.js#L7). As you see in the `.then()` I call `dispatch()` with appropriate `action` which will call (=or dispatch) action `SET_FILMS` to [src/reducers/films.js - line 10](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/reducers/films.js#L10) and the `reducer` will return new immutable `store` and this `store` will replace my current store.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+    ## Store sctucture
 
-### `npm run eject`
+    1.The structure of the store will be determined here [src/store/index.js - line 11](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/store/index.js#L11) - store struture depends on you reducers. Root reduser has this structure [src/reducers/index.js - line 4](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/reducers/index.js#L4). Every reduser is a separate prop in the store and these props will contain structure depends on they initial state like her [users reducer initial state](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/reducers/users.js#L29) and [films reduces initial state](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/reducers/films.js#L3). So out redux store will look like this:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+    ```javascript
+    {
+        films: {
+            items: [],
+            filter: ''
+        },
+        users: {
+            registratedAccounts: [],
+            currentAccount: {}
+        }
+    }
+    ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+    ```
+    items - Just film objects which we'll get after API request
+    filter - We'll filter our films by this value
+    registratedAccounts - Just list of all known users
+    currentAccount - Current logged in user
+    ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## Components
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+1. Films
 
-## Learn More
+    Compnent which contains a list of all films which we've got from out API.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+    Here I do API call to get films [Films.js - line 21](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Films/Films.js#L21). I do the call by dispatching appropriate action (=or a function wich returns action object).
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+    As soon as API give me fimls list I take from the store here [Films.js - line 15](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Films/Films.js#L15) and will use this value as an unsual array and render it here [Films.js - line 51](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Films/Films.js#L51).
 
-### Code Splitting
+2. Film - just a template for a film object with buttons `Add to favorite` and `Remove from favorite`. You can see here that I'm interacting only with our store here through `dispatch()` and appropriate `actions`.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+3. Filter - a component just with an input which [dispatch(setFilterValue(value))](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Filter/Filter.js#L13) and write this value to the store. 
 
-### Analyzing the Bundle Size
+    Then I'll use this value here [Films.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Films/Films.js#L16) to filter the films.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+4. Favorite - component this favorite filmes for the current user. 
+    
+    You can see that in this component [Favorite.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Favorites/Fvorites.js#L9) I take `current user`, `films` and `filter` and then I use these values to filter `films` array and render only films which `currenct user` has in his `favorites`.
 
-### Making a Progressive Web App
+5. Sso - Sign in Sign out. I won't share with you a lot of links here because I'm busy and already tired :)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+    Here you find [Login.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Sso/Login.js) and [Create Account](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Sso/CreateAccount.js).
 
-### Advanced Configuration
+    I implemented a simple validation here.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+    ### Create account
 
-### Deployment
+    1. When you create account you type `username` and `password`. First of all we check If user entered these data and then check if account with such username alredy exist. If something wrong we show a message with error.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+    2. If everything OK we generate [user data object](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Sso/CreateAccount.js#L41) and `dispatch()` this object to the store using appropriate actions.
 
-### `npm run build` fails to minify
+    ### Login
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+    Almost the same thing.
+
+    1. Check if user entered data.
+    
+    2. Check if account exist
+
+    3. Check password
+
+    4. Everything OK? So take this account from our redux `registratedAccounts` and `dispatch()` it as `current account` here [dispatch(setCurrentAccount(account));](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Sso/Login.js#L43).
+
+
+## Router
+
+1. Router set up here [src/index.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/index.js#L32) and routes her [src/components/App.js](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/App.js).
+
+2. To navigate between routes we use `<Link />` component like here [example Link](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Favorites/Fvorites.js#L28). It looks like `<a />` tag.
+
+3. If you want make `<Link />` look like button you can do it like this [example Link as Button](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Sso/Login.js#L83).
+
+4. Above you can see components and sometimes you want to navigate after API call. So you can use [useNavigate](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Sso/Login.js#L83) from `react-router-dom`. Usage here [example navigate](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/components/Sso/Login.js#L49).
+
+
+# Last words
+
+
+I created logic to store `logged in user` and `registrated users` in the `localStorage`. [This is example](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/index.js#L14-L28).
+
+ And when I start my application I check if I have something in local storage. If no just set default values. [Here's an example](https://github.com/AlexeyPoll/simple-films-list/blob/master/src/reducers/users.js#L26-L32).
+
+
+Thank you!
+
+Best regards.
+
